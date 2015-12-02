@@ -2,23 +2,90 @@
 #
 # Create timelapse movies from images in the output/screen and output/isight folders
 #
-SOURCES=( screen isight )
-# IMGSRC=isight
+SOURCES=( screen webcam )
+
+#output_dir="output"
+output_dir=$1
+
+mkdir -p ${output_dir}/videos
+#FFMPEG_BIN="ffmpeg -loglevel warning -y "
+FFMPEG_BIN="ffmpeg -loglevel panic -y "
+#FFMPEG_BIN="ffmpeg -y "
+
+VIDEO_HEIGHT=360
+
+stream_width() {
+  ffprobe -v error -of flat=s=_ -select_streams v:0 -show_entries stream=width $1 | awk -F= '{print $2}'
+}
+
+stream_height() {
+  ffprobe -v error -of flat=s=_ -select_streams v:0 -show_entries stream=height $1 | awk -F= '{print $2}'
+}
 
 for src in "${SOURCES[@]}"
 do
+  echo "Building $src video from raw images"
 
   COUNTER=0;
-  rm output/$src/series/*.jpg
+  rm -f ${output_dir}/$src/series/*.jpg
+  mkdir -p ${output_dir}/$src/series/
 
-  for i in `find output/$src -name '*.jpg'` ;
+  for i in `find ${output_dir}/$src -name '*.jpg'` ;
   do
     # Write the filename to be friendly with ffmpeg's old filename input
     FILENAME=`printf '%05d.jpg' $COUNTER`
-    cp $i output/$src/series/$FILENAME
+    #echo "Copying $i to  ${output_dir}/$src/series/$FILENAME"
+    cp $i ${output_dir}/$src/series/$FILENAME
     let COUNTER=COUNTER+1;
   done
 
-  nice ffmpeg -r 24 -i output/$src/series/%5d.jpg output/videos/timelapse-$src.mov
+  vheight=${VIDEO_HEIGHT}
+  if [ "$src" == "webcam" ]; then
+    vheight=180
+  fi
+  nice ${FFMPEG_BIN}  -r 24 -i ${output_dir}/$src/series/%5d.jpg -vf scale=-1:${vheight} ${output_dir}/videos/timelapse-$src.mov
 
 done
+
+video_webcam="${output_dir}/videos/timelapse-webcam.mov"
+video_webcam_padded="${output_dir}/videos/timelapse-webcam-padded.mov"
+video_screen="${output_dir}/videos/timelapse-screen.mov"
+video_screen_padded="${output_dir}/videos/timelapse-screen-padded.mov"
+video_timelapse="${output_dir}/videos/timelapse.mov"
+
+video_screen_width=$(stream_width ${video_screen})
+video_webcam_width=$(stream_width ${video_webcam})
+video_screen_height=$(stream_height ${video_screen})
+video_webcam_height=$(stream_height ${video_webcam})
+
+pad_width=${video_screen_width}
+pad_pos=$((${video_screen_width}/2 - ${video_webcam_width}/2))
+
+#echo "video_screen_width: ${video_screen_width}"
+#echo "video_webcam_width: ${video_webcam_width}"
+#echo "pad_width: ${pad_width}"
+#echo "pad_pos: ${pad_pos}"
+
+if [ $(($pad_pos > 0)) -eq 1 ]; then
+
+  # pad webcam video
+  echo "Adding padding to webcam video"
+  nice ${FFMPEG_BIN} -i ${video_webcam} -vf "pad=width=${pad_width}:height=${video_webcam_height}:x=${pad_pos}:y=0:color=black" ${video_webcam_padded}
+  cp ${video_webcam_padded} ${video_webcam} 
+
+elif [ $(($pad_pos < 0)) -eq 1 ]; then
+
+  # pad screen video
+  echo "Adding padding to screen video"
+  pad_width=${video_webcam_width}
+  pad_pos=$((${video_webcam_width}/2 - ${video_screen_width}/2))
+  nice ${FFMPEG_BIN} -i ${video_screen} -vf "pad=width=${pad_width}:height=${video_screen_height}:x=${pad_pos}:y=0:color=black" ${video_screen_padded}
+  cp ${video_screen_padded} ${video_screen} 
+
+elif [ $(($pad_pos == 0)) -eq 1 ]; then
+  echo "webcam equal to screen"
+fi
+
+# build stacked timelapse video
+nice ${FFMPEG_BIN} -i ${video_webcam} -i ${video_screen} -filter_complex vstack ${video_timelapse}
+
