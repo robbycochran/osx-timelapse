@@ -1,7 +1,7 @@
 panopticon
 =============
 
-![Panopticon](https://upload.wikimedia.org/wikipedia/commons/1/11/Panopticon.jpg)
+![Panopticon](https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Panopticon.jpg/218px-Panopticon.jpg)
 
 Forked from [osx-timelapse](https://github.com/patrickward/osx-timelapse)
 
