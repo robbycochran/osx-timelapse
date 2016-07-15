@@ -9,15 +9,17 @@
 output_dir="output"
 output_dir="capture-$(date '+%Y-%m-%dT%H%M%S')"
 screen_size="1400x900!"
-SCREENS=( 2 1 3 )
-#SCREENS=( 1 )
+#SCREENS=( 2 1 3 )
+SCREENS=( 1 )
 FFMPEG_BIN="ffmpeg -loglevel panic -y "
 
 mkdir -p $output_dir/screen $output_dir/webcam
 SCREEN_LEN=${#SCREENS[@]}
-for (( i=0; i<${SCREEN_LEN}; ++i)); do
-  mkdir -p $output_dir/screen${SCREENS[$i]}
-done
+if [ ! $SCREEN_LEN -eq 1 ]; then
+  for (( i=0; i<${SCREEN_LEN}; ++i)); do
+    mkdir -p $output_dir/screen${SCREENS[$i]}
+  done
+fi
 
 while true; do
     timestamp=$(date '+%Y-%m-%dT%H%M%S');
