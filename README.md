@@ -1,23 +1,16 @@
-osx-timelapse
+panopticon
 =============
 
-This project is a series of quick Mac OSX shell scripts I put together for taking timed screenshots and iSight snapshots.
+![Panopticon](https://upload.wikimedia.org/wikipedia/commons/1/11/Panopticon.jpg)
 
-It was put together for use in the Ludum Dare challenge in order to capture a timelapse of my development.
-
-I've only tested these on my Mac, which is currently:
-
-- Macbook Pro (Early 2011)
-- 8 Gb RAM
-- Mac OSX Lion v10.8.3
-
-USE AT YOUR OWN RISK. The License is WTFPL (see LICENSE.txt).
+Forked from [osx-timelapse](https://github.com/patrickward/osx-timelapse)
 
 ## Requirements
 
 - screencapture (built in to Mac OS X)
-- imagesnap (included in this repo)
+- [ImageSnap](https://github.com/rharder/imagesnap)
 - [ffmpeg](http://ffmpeg.org/)
+- [imagemagick](http://www.imagemagick.org/script/index.php)
 
 ## Useage
 
@@ -25,9 +18,9 @@ The only external hard requirement for these scripts (outside of the Mac environ
 
 The scripts assume all work will be done in the current directory.
 
-To start the timelapse screenshots run `./timelapse`.
+To start the timelapse screenshots run `./panopticon`.
 
-I set it to run every 2 minutes (120 seconds), but you can adjust that in the `timelapse.sh` file.
+I set it to run every (30 seconds).
 
 When you're done taking snapshots, `Ctrl-C` to stop the process.
 
